@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light only">
+<meta name="theme-color" content="#C8870A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NK ENT">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<title>NK ENT - Sales Database</title>
+<style>
+  :root{
+    color-scheme: light;
+    --bg:#FBF7F0;
+    --amber:#C8870A;
+    --amber-dark:#B9760A;
+    --amber-light:#F3DEB3;
+    --brown:#3E2C1C;
+    --brown-light:#8A7866;
+    --can-color:#5C7A99;
+    --bottle-color:#C8870A;
+    --border:#EAE0CF;
+    --danger:#C0392B;
+    --shadow:0 2px 10px rgba(62,44,28,0.08);
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background:var(--bg);
+    color:var(--brown);
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    background:var(--bg);
+    padding-bottom:74px;
+    position:relative;
+  }
+
+  /* Header */
+  .app-header{
+    background:linear-gradient(135deg, var(--amber), var(--amber-dark));
+    color:#fff;
+    padding:16px 18px 14px;
+    position:sticky;
+    top:0;
+    z-index:10;
+    box-shadow:var(--shadow);
+  }
+  .app-title{ font-size:1.35rem; font-weight:800; letter-spacing:0.5px; display:flex; align-items:center; gap:8px; }
+  .app-subtitle{ font-size:0.75rem; opacity:0.9; margin-top:2px; }
+
+  /* Pages */
+  .page{ display:none; padding:16px; flex:1; }
+  .page.active{ display:block; }
+
+  /* Dashboard */
+  .summary-card{ background:#fff; border-radius:14px; padding:18px; box-shadow:var(--shadow); margin-bottom:14px; }
+  .summary-card .label{ font-size:0.78rem; color:var(--brown-light); text-transform:uppercase; letter-spacing:0.6px; font-weight:700; }
+  .summary-card .value{ font-size:2rem; font-weight:800; color:var(--amber); margin-top:6px; }
+  .stat-row{ display:flex; gap:10px; margin-bottom:14px; }
+  .stat-box{ flex:1; background:#fff; border-radius:12px; padding:12px; text-align:center; box-shadow:var(--shadow); }
+  .stat-box .stat-value{ font-size:1.25rem; font-weight:800; color:var(--brown); }
+  .stat-box .stat-label{ font-size:0.7rem; color:var(--brown-light); margin-top:2px; }
+  .section-title{ font-size:0.9rem; font-weight:800; margin:18px 0 10px; color:var(--brown); }
+  .items-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .item-card{ background:#fff; border-radius:12px; padding:12px; box-shadow:var(--shadow); border-left:4px solid var(--bottle-color); }
+  .item-card.can{ border-left-color:var(--can-color); }
+  .item-card .item-name{ font-weight:700; font-size:0.85rem; }
+  .item-card .item-type{ font-size:0.68rem; color:var(--brown-light); text-transform:uppercase; letter-spacing:0.6px; margin-bottom:8px; font-weight:700; }
+  .item-card .item-qty{ font-size:0.8rem; color:var(--brown-light); }
+  .item-card .item-amt{ font-size:1.1rem; font-weight:800; color:var(--brown); margin-top:2px; }
+
+  /* Cards / forms */
+  .card{ background:#fff; border-radius:14px; padding:14px; box-shadow:var(--shadow); margin-bottom:14px; }
+  .form-row{ display:flex; gap:8px; margin-bottom:10px; }
+  .form-row:last-of-type{ margin-bottom:0; }
+  .form-row > div{ flex:1; }
+  label{ font-size:0.72rem; font-weight:700; color:var(--brown-light); display:block; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.4px; }
+  input, select{
+    width:100%; padding:10px; border:1px solid var(--border); border-radius:9px;
+    font-size:0.95rem; background:#fff; color:var(--brown); font-family:inherit;
+  }
+  input:focus, select:focus{ outline:2px solid var(--amber); border-color:var(--amber); }
+
+  /* Buttons */
+  .btn{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    padding:12px 14px; border-radius:10px; border:none;
+    font-size:0.9rem; font-weight:700; cursor:pointer; width:100%;
+    margin-top:8px; font-family:inherit;
+  }
+  .card .btn:first-of-type, #addSaleBtn{ margin-top:4px; }
+  .btn-primary{ background:var(--amber); color:#fff; }
+  .btn-primary:active{ background:var(--amber-dark); }
+  .btn-secondary{ background:var(--amber-light); color:var(--brown); }
+  .btn-outline{ background:#fff; color:var(--brown); border:1px solid var(--border); }
+  .btn-danger{ background:#fff; color:var(--danger); border:1px solid var(--danger); }
+
+  /* Search */
+  .search-bar{
+    display:flex; align-items:center; gap:8px; background:#fff;
+    border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:10px;
+  }
+  .search-bar input{ border:none; flex:1; padding:0; font-size:0.9rem; }
+  .search-bar input:focus{ outline:none; }
+
+  /* Filter chips */
+  .chips{ display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:8px; -webkit-overflow-scrolling:touch; }
+  .chips::-webkit-scrollbar{ display:none; }
+  .chip{
+    flex-shrink:0; padding:7px 14px; border-radius:20px; background:#fff;
+    border:1px solid var(--border); font-size:0.78rem; font-weight:700;
+    cursor:pointer; color:var(--brown-light); white-space:nowrap;
+  }
+  .chip.active{ background:var(--brown); color:#fff; border-color:var(--brown); }
+
+  /* Sales lists */
+  .list-section{ background:#fff; border-radius:14px; padding:12px 14px; box-shadow:var(--shadow); margin-bottom:12px; }
+  .list-section-header{
+    display:flex; justify-content:space-between; align-items:center;
+    padding-bottom:8px; border-bottom:1px solid var(--border); margin-bottom:6px;
+  }
+  .list-section-header .title{ font-weight:800; font-size:0.85rem; }
+  .list-section-header .title.can{ color:var(--can-color); }
+  .list-section-header .title.bottle{ color:var(--bottle-color); }
+  .list-section-header .subtotal{ font-weight:800; font-size:0.92rem; color:var(--brown); }
+  .sale-row{ display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid #F5EFE2; gap:8px; }
+  .sale-row:last-child{ border-bottom:none; }
+  .sale-info{ display:flex; flex-direction:column; min-width:0; }
+  .sale-brand{ font-weight:700; font-size:0.86rem; }
+  .sale-date{ font-size:0.7rem; color:var(--brown-light); margin-top:1px; }
+  .sale-values{ text-align:right; flex-shrink:0; }
+  .sale-qty{ font-size:0.72rem; color:var(--brown-light); display:block; }
+  .sale-amount{ font-weight:800; font-size:0.9rem; }
+  .sale-actions{ display:flex; gap:2px; flex-shrink:0; }
+  .icon-btn{ background:none; border:none; font-size:1.05rem; cursor:pointer; padding:5px; line-height:1; }
+  .icon-btn.danger{ filter:none; }
+  .empty-row{ text-align:center; padding:18px 0; color:var(--brown-light); font-size:0.85rem; }
+  .grand-total-row{
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--brown); color:#fff; border-radius:12px; padding:14px 16px;
+    font-weight:800; font-size:1.05rem; margin-bottom:8px;
+  }
+
+  /* Settings */
+  .settings-group{ background:#fff; border-radius:14px; padding:14px; margin-bottom:14px; box-shadow:var(--shadow); }
+  .settings-group h3{ font-size:0.75rem; text-transform:uppercase; letter-spacing:0.6px; color:var(--brown-light); margin-bottom:10px; font-weight:800; }
+  .settings-group .btn:first-of-type{ margin-top:0; }
+  .about-text{ font-size:0.83rem; color:var(--brown-light); line-height:1.6; }
+  .about-text b{ color:var(--brown); }
+
+  /* Bottom nav */
+  .bottom-nav{
+    position:fixed; bottom:0; left:0; right:0; max-width:480px; margin:0 auto;
+    background:#fff; display:flex; box-shadow:0 -2px 10px rgba(62,44,28,0.08); z-index:20;
+    border-top:1px solid var(--border);
+  }
+  .nav-btn{
+    flex:1; padding:9px 0 8px; text-align:center; background:none; border:none;
+    cursor:pointer; color:var(--brown-light); font-size:0.7rem; font-weight:700; font-family:inherit;
+  }
+  .nav-btn .nav-icon{ font-size:1.35rem; display:block; margin-bottom:2px; }
+  .nav-btn.active{ color:var(--amber); }
+
+  /* Modal */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(62,44,28,0.5);
+    display:none; align-items:center; justify-content:center; z-index:50; padding:20px;
+  }
+  .modal-overlay.active{ display:flex; }
+  .modal{ background:#fff; border-radius:16px; padding:20px; width:100%; max-width:400px; max-height:90vh; overflow-y:auto; }
+  .modal h3{ margin-bottom:14px; font-size:1.05rem; }
+  .modal-actions{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .modal-actions .btn{ margin-top:0; flex:1 1 auto; min-width:90px; }
+
+  /* Toast */
+  .toast{
+    position:fixed; bottom:84px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--brown); color:#fff; padding:10px 18px; border-radius:30px;
+    font-size:0.85rem; font-weight:600; z-index:60; opacity:0; transition:all 0.25s ease; pointer-events:none;
+    max-width:90%; text-align:center;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* Print area - hidden on screen */
+  #printPage{ display:none; }
+
+  @media print{
+    body *{ visibility:hidden; }
+    #printArea, #printArea *{ visibility:visible; }
+    #printPage{ display:block; }
+    #printArea{ position:absolute; left:0; top:0; width:100%; padding:10px; }
+    #printArea h1{ font-size:20px; margin-bottom:2px; }
+    #printArea h2{ font-size:14px; margin:14px 0 6px; }
+    #printArea p{ font-size:12px; color:#555; margin-bottom:4px; }
+    #printArea table{ width:100%; border-collapse:collapse; margin-top:6px; }
+    #printArea th, #printArea td{ border:1px solid #999; padding:5px 8px; text-align:left; font-size:11px; }
+    #printArea th{ background:#f0f0f0; }
+    #printArea tfoot td{ font-weight:bold; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="app-header">
+    <div class="app-title">🍺 NK ENT</div>
+    <div class="app-subtitle" id="headerSubtitle">Sales Database</div>
+  </header>
+
+  <!-- ========== DASHBOARD ========== -->
+  <section id="dashboard" class="page active">
+    <div class="summary-card">
+      <div class="label" id="currentMonthLabel">This Month</div>
+      <div class="value" id="totalSalesAmount">RM 0.00</div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-box">
+        <div class="stat-value" id="totalSalesQty">0</div>
+        <div class="stat-label">Units Sold</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="totalSalesCount">0</div>
+        <div class="stat-label">Transactions</div>
+      </div>
+    </div>
+    <div class="section-title">Sales by Item (This Month)</div>
+    <div class="items-grid" id="itemsGrid"></div>
+  </section>
+
+  <!-- ========== SALES ENTRY ========== -->
+  <section id="sales" class="page">
+
+    <div class="card">
+      <div class="form-row">
+        <div>
+          <label for="saleDate">Date</label>
+          <input type="date" id="saleDate">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label for="saleBrand">Brand</label>
+          <select id="saleBrand">
+            <option value="Tiger">Tiger</option>
+            <option value="Carlsberg">Carlsberg</option>
+            <option value="Guinness Stout">Guinness Stout</option>
+          </select>
+        </div>
+        <div>
+          <label for="saleType">Type</label>
+          <select id="saleType">
+            <option value="Can">Can</option>
+            <option value="Bottle">Bottle</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label for="saleQty">Quantity</label>
+          <input type="number" id="saleQty" min="1" step="1" value="1" inputmode="numeric">
+        </div>
+        <div>
+          <label for="saleAmount">Amount (RM)</label>
+          <input type="number" id="saleAmount" min="0" step="0.01" placeholder="0.00" inputmode="decimal">
+        </div>
+      </div>
+      <button class="btn btn-primary" id="addSaleBtn">+ Add Sale</button>
+    </div>
+
+    <div class="search-bar">
+      <span>🔍</span>
+      <input type="text" id="searchInput" placeholder="Search by date (YYYY-MM-DD) or brand...">
+    </div>
+
+    <div class="chips" id="periodChips">
+      <div class="chip active" data-filter-type="period" data-filter-value="day">Selected Day</div>
+      <div class="chip" data-filter-type="period" data-filter-value="week">Last 7 Days</div>
+      <div class="chip" data-filter-type="period" data-filter-value="month">This Month</div>
+      <div class="chip" data-filter-type="period" data-filter-value="all">All Time</div>
+    </div>
+    <div class="chips" id="typeChips">
+      <div class="chip active" data-filter-type="type" data-filter-value="all">All Types</div>
+      <div class="chip" data-filter-type="type" data-filter-value="Can">Can Only</div>
+      <div class="chip" data-filter-type="type" data-filter-value="Bottle">Bottle Only</div>
+    </div>
+
+    <div class="list-section">
+      <div class="list-section-header">
+        <div class="title can">🥫 Can Sales</div>
+        <div class="subtotal" id="canSubtotal">RM 0.00</div>
+      </div>
+      <div id="canSalesList"></div>
+    </div>
+
+    <div class="list-section">
+      <div class="list-section-header">
+        <div class="title bottle">🍾 Bottle Sales</div>
+        <div class="subtotal" id="bottleSubtotal">RM 0.00</div>
+      </div>
+      <div id="bottleSalesList"></div>
+    </div>
+
+    <div class="grand-total-row">
+      <span id="totalLabel">Total</span>
+      <span id="grandTotal">RM 0.00</span>
+    </div>
+  </section>
+
+  <!-- ========== SETTINGS ========== -->
+  <section id="settings" class="page">
+
+    <div class="settings-group">
+      <h3>Reports & Sharing</h3>
+      <button class="btn btn-secondary" id="exportPdfBtn">📄 Generate PDF Report (This Month)</button>
+      <button class="btn btn-secondary" id="printBtn">🖨️ Printable Summary</button>
+      <button class="btn btn-secondary" id="whatsappBtn">💬 Share Summary on WhatsApp</button>
+    </div>
+
+    <div class="settings-group">
+      <h3>Backup</h3>
+      <button class="btn btn-outline" id="exportJsonBtn">⬇️ Export JSON Backup</button>
+      <label class="btn btn-outline" for="importJsonInput" style="cursor:pointer;">⬆️ Import JSON Backup</label>
+      <input type="file" id="importJsonInput" accept="application/json" style="display:none;">
+    </div>
+
+    <div class="settings-group">
+      <h3>Data Management</h3>
+      <button class="btn btn-danger" id="clearDataBtn">Clear All Sales Data</button>
+      <button class="btn btn-danger" id="resetDbBtn">Reset Database (Full Wipe)</button>
+    </div>
+
+    <div class="settings-group">
+      <h3>About</h3>
+      <p class="about-text">
+        <b>NK ENT Sales Database</b> v1.0<br><br>
+        All records are stored permanently on this device using IndexedDB - no internet connection is needed after the first load. Nothing is sent to any server.<br><br>
+        Use <b>Export JSON Backup</b> regularly to keep a copy of your data safe.
+      </p>
+    </div>
+  </section>
+
+  <!-- ========== BOTTOM NAV ========== -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-page="dashboard"><span class="nav-icon">📊</span>Dashboard</button>
+    <button class="nav-btn" data-page="sales"><span class="nav-icon">🍺</span>Sales</button>
+    <button class="nav-btn" data-page="settings"><span class="nav-icon">⚙️</span>Settings</button>
+  </nav>
+
+  <!-- ========== EDIT MODAL ========== -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <h3>Edit Sale</h3>
+      <form id="editForm">
+        <input type="hidden" id="editId">
+        <div class="form-row">
+          <div>
+            <label for="editDate">Date</label>
+            <input type="date" id="editDate" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label for="editBrand">Brand</label>
+            <select id="editBrand">
+              <option value="Tiger">Tiger</option>
+              <option value="Carlsberg">Carlsberg</option>
+              <option value="Guinness Stout">Guinness Stout</option>
+            </select>
+          </div>
+          <div>
+            <label for="editType">Type</label>
+            <select id="editType">
+              <option value="Can">Can</option>
+              <option value="Bottle">Bottle</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label for="editQty">Quantity</label>
+            <input type="number" id="editQty" min="1" step="1" required inputmode="numeric">
+          </div>
+          <div>
+            <label for="editAmount">Amount (RM)</label>
+            <input type="number" id="editAmount" min="0" step="0.01" required inputmode="decimal">
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-danger" id="editDeleteBtn">Delete</button>
+          <button type="button" class="btn btn-outline" id="editCancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Print area -->
+  <div id="printPage"><div id="printArea"></div></div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+/* ============================================================
+   NK ENT - Sales Database
+   Vanilla JS PWA with IndexedDB storage
+   ============================================================ */
+
+const BRANDS = ['Tiger', 'Carlsberg', 'Guinness Stout'];
+const TYPES  = ['Can', 'Bottle'];
+
+const DB_NAME    = 'NKEntDB';
+const DB_VERSION = 1;
+const STORE_NAME = 'sales';
+
+let db = null;
+
+// ---------- IndexedDB helpers ----------
+function openDB(){
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const database = e.target.result;
+      if (!database.objectStoreNames.contains(STORE_NAME)){
+        const store = database.createObjectStore(STORE_NAME, { keyPath:'id', autoIncrement:true });
+        store.createIndex('date', 'date', { unique:false });
+        store.createIndex('brand', 'brand', { unique:false });
+        store.createIndex('type', 'type', { unique:false });
+      }
+    };
+    req.onsuccess = (e) => { db = e.target.result; resolve(db); };
+    req.onerror   = (e) => reject(e.target.error);
+  });
+}
+
+function addSale(sale){
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const req = tx.objectStore(STORE_NAME).add(sale);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = (e) => reject(e.target.error);
+  });
+}
+
+function updateSale(sale){
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const req = tx.objectStore(STORE_NAME).put(sale);
+    req.onsuccess = () => resolve();
+    req.onerror   = (e) => reject(e.target.error);
+  });
+}
+
+function deleteSale(id){
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const req = tx.objectStore(STORE_NAME).delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror   = (e) => reject(e.target.error);
+  });
+}
+
+function getAllSales(){
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const req = tx.objectStore(STORE_NAME).getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = (e) => reject(e.target.error);
+  });
+}
+
+function clearAllSales(){
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const req = tx.objectStore(STORE_NAME).clear();
+    req.onsuccess = () => resolve();
+    req.onerror   = (e) => reject(e.target.error);
+  });
+}
+
+function resetDatabase(){
+  return new Promise((resolve, reject) => {
+    if (db) db.close();
+    const req = indexedDB.deleteDatabase(DB_NAME);
+    req.onsuccess = () => openDB().then(resolve);
+    req.onerror   = (e) => reject(e.target.error);
+    req.onblocked = () => openDB().then(resolve);
+  });
+}
+
+// ---------- Utilities ----------
+function todayStr(){
+  const d = new Date();
+  const tz = d.getTimezoneOffset();
+  const local = new Date(d.getTime() - tz * 60000);
+  return local.toISOString().slice(0,10);
+}
+
+function fmtRM(n){
+  return 'RM ' + (Number(n) || 0).toFixed(2);
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ---------- Navigation ----------
+function showPage(pageId){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.nav-btn[data-page="${pageId}"]`).classList.add('active');
+
+  const subtitles = { dashboard:'Sales Database', sales:'Sales Entry', settings:'Settings & Backup' };
+  document.getElementById('headerSubtitle').textContent = subtitles[pageId] || 'Sales Database';
+
+  if (pageId === 'dashboard') renderDashboard();
+  if (pageId === 'sales') renderSalesPage();
+}
+
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => showPage(btn.dataset.page));
+});
+
+// ---------- Dashboard ----------
+async function renderDashboard(){
+  const all = await getAllSales();
+  const now = new Date();
+  const monthStr = todayStr().slice(0,7);
+  const monthSales = all.filter(s => s.date.slice(0,7) === monthStr);
+
+  let totalAmount = 0, totalQty = 0;
+  monthSales.forEach(s => { totalAmount += s.amount; totalQty += s.quantity; });
+
+  document.getElementById('currentMonthLabel').textContent =
+    'Total Sales - ' + now.toLocaleString('en-GB', { month:'long', year:'numeric' });
+  document.getElementById('totalSalesAmount').textContent = fmtRM(totalAmount);
+  document.getElementById('totalSalesQty').textContent = totalQty;
+  document.getElementById('totalSalesCount').textContent = monthSales.length;
+
+  const grid = document.getElementById('itemsGrid');
+  grid.innerHTML = '';
+  BRANDS.forEach(brand => {
+    TYPES.forEach(type => {
+      const items = monthSales.filter(s => s.brand === brand && s.type === type);
+      const qty = items.reduce((sum, s) => sum + s.quantity, 0);
+      const amt = items.reduce((sum, s) => sum + s.amount, 0);
+      const card = document.createElement('div');
+      card.className = 'item-card ' + type.toLowerCase();
+      card.innerHTML = `
+        <div class="item-name">${brand}</div>
+        <div class="item-type">${type}</div>
+        <div class="item-qty">${qty} units sold</div>
+        <div class="item-amt">${fmtRM(amt)}</div>
+      `;
+      grid.appendChild(card);
+    });
+  });
+}
+
+// ---------- Sales Entry Page ----------
+let currentDate  = todayStr();
+let periodFilter = 'day';     // day | week | month | all
+let typeFilter   = 'all';     // all | Can | Bottle
+let searchQuery  = '';
+
+async function renderSalesPage(){
+  document.getElementById('saleDate').value = currentDate;
+  await renderSalesList();
+}
+
+async function renderSalesList(){
+  const all = await getAllSales();
+  let filtered = all;
+
+  if (searchQuery){
+    const q = searchQuery.toLowerCase();
+    filtered = filtered.filter(s =>
+      s.date.includes(q) ||
+      s.brand.toLowerCase().includes(q) ||
+      s.type.toLowerCase().includes(q)
+    );
+    document.getElementById('totalLabel').textContent = 'Search Results Total';
+  } else {
+    const today = todayStr();
+    if (periodFilter === 'day'){
+      filtered = filtered.filter(s => s.date === currentDate);
+      document.getElementById('totalLabel').textContent = currentDate + ' Total';
+    } else if (periodFilter === 'week'){
+      const cutoff = new Date(today);
+      cutoff.setDate(cutoff.getDate() - 6);
+      const cutoffStr = cutoff.toISOString().slice(0,10);
+      filtered = filtered.filter(s => s.date >= cutoffStr && s.date <= today);
+      document.getElementById('totalLabel').textContent = 'Last 7 Days Total';
+    } else if (periodFilter === 'month'){
+      const monthStr = today.slice(0,7);
+      filtered = filtered.filter(s => s.date.slice(0,7) === monthStr);
+      document.getElementById('totalLabel').textContent = 'This Month Total';
+    } else {
+      document.getElementById('totalLabel').textContent = 'All Time Total';
+    }
+  }
+
+  if (typeFilter !== 'all'){
+    filtered = filtered.filter(s => s.type === typeFilter);
+  }
+
+  filtered.sort((a,b) => (b.date.localeCompare(a.date)) || (b.id - a.id));
+  renderGroupedList(filtered);
+}
+
+function renderGroupedList(items){
+  const canItems    = items.filter(s => s.type === 'Can');
+  const bottleItems = items.filter(s => s.type === 'Bottle');
+
+  document.getElementById('canSalesList').innerHTML = renderRows(canItems);
+  document.getElementById('bottleSalesList').innerHTML = renderRows(bottleItems);
+
+  const canTotal    = canItems.reduce((s,i) => s + i.amount, 0);
+  const bottleTotal = bottleItems.reduce((s,i) => s + i.amount, 0);
+
+  document.getElementById('canSubtotal').textContent = fmtRM(canTotal);
+  document.getElementById('bottleSubtotal').textContent = fmtRM(bottleTotal);
+  document.getElementById('grandTotal').textContent = fmtRM(canTotal + bottleTotal);
+}
+
+function renderRows(items){
+  if (items.length === 0) return '<div class="empty-row">No sales recorded</div>';
+  return items.map(s => `
+    <div class="sale-row">
+      <div class="sale-info">
+        <span class="sale-brand">${escapeHtml(s.brand)}</span>
+        <span class="sale-date">${s.date}</span>
+      </div>
+      <div class="sale-values">
+        <span class="sale-qty">${s.quantity} pcs</span>
+        <span class="sale-amount">${fmtRM(s.amount)}</span>
+      </div>
+      <div class="sale-actions">
+        <button class="icon-btn" onclick="editSale(${s.id})" aria-label="Edit">✎</button>
+        <button class="icon-btn danger" onclick="removeSale(${s.id})" aria-label="Delete">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Add sale
+document.getElementById('addSaleBtn').addEventListener('click', async () => {
+  const date     = document.getElementById('saleDate').value || todayStr();
+  const brand    = document.getElementById('saleBrand').value;
+  const type     = document.getElementById('saleType').value;
+  const quantity = parseFloat(document.getElementById('saleQty').value);
+  const amount   = parseFloat(document.getElementById('saleAmount').value);
+
+  if (!quantity || quantity <= 0){
+    showToast('Enter a valid quantity');
+    return;
+  }
+  if (isNaN(amount) || amount < 0){
+    showToast('Enter a valid amount');
+    return;
+  }
+
+  await addSale({ date, brand, type, quantity, amount, timestamp: Date.now() });
+
+  document.getElementById('saleQty').value = '1';
+  document.getElementById('saleAmount').value = '';
+  document.getElementById('saleAmount').focus();
+
+  showToast(`Added: ${brand} (${type}) - ${fmtRM(amount)}`);
+  await renderSalesList();
+});
+
+// Date change
+document.getElementById('saleDate').addEventListener('change', (e) => {
+  currentDate = e.target.value || todayStr();
+  if (periodFilter === 'day') renderSalesList();
+});
+
+// Search
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  searchQuery = e.target.value.trim();
+  renderSalesList();
+});
+
+// Filter chips
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const ftype  = chip.dataset.filterType;
+    const fvalue = chip.dataset.filterValue;
+    if (ftype === 'period'){
+      periodFilter = fvalue;
+      document.querySelectorAll('#periodChips .chip').forEach(c => c.classList.remove('active'));
+    } else {
+      typeFilter = fvalue;
+      document.querySelectorAll('#typeChips .chip').forEach(c => c.classList.remove('active'));
+    }
+    chip.classList.add('active');
+    renderSalesList();
+  });
+});
+
+// ---------- Edit / Delete ----------
+async function editSale(id){
+  const all = await getAllSales();
+  const sale = all.find(s => s.id === id);
+  if (!sale) return;
+
+  document.getElementById('editId').value = sale.id;
+  document.getElementById('editDate').value = sale.date;
+  document.getElementById('editBrand').value = sale.brand;
+  document.getElementById('editType').value = sale.type;
+  document.getElementById('editQty').value = sale.quantity;
+  document.getElementById('editAmount').value = sale.amount;
+
+  document.getElementById('editModal').classList.add('active');
+}
+
+async function removeSale(id){
+  if (!confirm('Delete this sale record? This cannot be undone.')) return;
+  await deleteSale(id);
+  showToast('Record deleted');
+  await renderSalesList();
+}
+
+document.getElementById('editForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = parseInt(document.getElementById('editId').value, 10);
+  const quantity = parseFloat(document.getElementById('editQty').value);
+  const amount = parseFloat(document.getElementById('editAmount').value);
+
+  if (!quantity || quantity <= 0){ showToast('Enter a valid quantity'); return; }
+  if (isNaN(amount) || amount < 0){ showToast('Enter a valid amount'); return; }
+
+  const sale = {
+    id,
+    date: document.getElementById('editDate').value,
+    brand: document.getElementById('editBrand').value,
+    type: document.getElementById('editType').value,
+    quantity, amount,
+    timestamp: Date.now()
+  };
+  await updateSale(sale);
+  closeEditModal();
+  showToast('Record updated');
+  await renderSalesList();
+});
+
+document.getElementById('editDeleteBtn').addEventListener('click', async () => {
+  const id = parseInt(document.getElementById('editId').value, 10);
+  if (!confirm('Delete this sale record? This cannot be undone.')) return;
+  await deleteSale(id);
+  closeEditModal();
+  showToast('Record deleted');
+  await renderSalesList();
+});
+
+document.getElementById('editCancelBtn').addEventListener('click', closeEditModal);
+document.getElementById('editModal').addEventListener('click', (e) => {
+  if (e.target.id === 'editModal') closeEditModal();
+});
+
+function closeEditModal(){
+  document.getElementById('editModal').classList.remove('active');
+}
+
+// ---------- Settings: Data Management ----------
+document.getElementById('clearDataBtn').addEventListener('click', async () => {
+  if (!confirm('This will permanently delete ALL sales records. This cannot be undone. Continue?')) return;
+  await clearAllSales();
+  showToast('All sales data cleared');
+  renderDashboard();
+});
+
+document.getElementById('resetDbBtn').addEventListener('click', async () => {
+  if (!confirm('This will reset the entire database to a blank state. All data will be lost. Continue?')) return;
+  await resetDatabase();
+  showToast('Database reset complete');
+  renderDashboard();
+});
+
+// ---------- Settings: JSON Backup ----------
+document.getElementById('exportJsonBtn').addEventListener('click', async () => {
+  const all = await getAllSales();
+  const payload = {
+    app: 'NK ENT',
+    exportedAt: new Date().toISOString(),
+    records: all
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `NK_ENT_Backup_${todayStr()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast('Backup file downloaded');
+});
+
+document.getElementById('importJsonInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try{
+    const text = await file.text();
+    const data = JSON.parse(text);
+    const records = Array.isArray(data) ? data : (Array.isArray(data.records) ? data.records : null);
+    if (!records) throw new Error('Unrecognized backup format');
+
+    let imported = 0, skipped = 0;
+    for (const item of records){
+      if (!item || !item.date || !item.brand || !item.type ||
+          typeof item.quantity !== 'number' || typeof item.amount !== 'number'){
+        skipped++; continue;
+      }
+      await addSale({
+        date: item.date, brand: item.brand, type: item.type,
+        quantity: item.quantity, amount: item.amount,
+        timestamp: item.timestamp || Date.now()
+      });
+      imported++;
+    }
+    showToast(`Imported ${imported} record(s)${skipped ? ', skipped ' + skipped : ''}`);
+    renderDashboard();
+    if (document.getElementById('sales').classList.contains('active')) renderSalesList();
+  } catch(err){
+    showToast('Import failed: ' + err.message);
+  }
+  e.target.value = '';
+});
+
+// ---------- Settings: PDF Report ----------
+document.getElementById('exportPdfBtn').addEventListener('click', async () => {
+  if (!window.jspdf){
+    showToast('PDF library unavailable offline. Connect to internet once to enable this.');
+    return;
+  }
+  const all = await getAllSales();
+  const now = new Date();
+  const monthStr = todayStr().slice(0,7);
+  const monthSales = all.filter(s => s.date.slice(0,7) === monthStr);
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.setFontSize(18);
+  doc.text('NK ENT - Sales Report', 14, 18);
+  doc.setFontSize(11);
+  doc.text('Period: ' + now.toLocaleString('en-GB', { month:'long', year:'numeric' }), 14, 26);
+  doc.text('Generated: ' + now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString('en-GB'), 14, 32);
+
+  let y = 44;
+  doc.setFontSize(13);
+  doc.text('Item Summary', 14, y);
+  y += 7;
+  doc.setFontSize(10);
+  doc.text('Item', 14, y);
+  doc.text('Units', 110, y);
+  doc.text('Amount (RM)', 150, y);
+  y += 2;
+  doc.line(14, y, 196, y);
+  y += 6;
+
+  let grandTotal = 0, grandQty = 0;
+  BRANDS.forEach(brand => {
+    TYPES.forEach(type => {
+      const items = monthSales.filter(s => s.brand === brand && s.type === type);
+      const qty = items.reduce((sum, s) => sum + s.quantity, 0);
+      const amt = items.reduce((sum, s) => sum + s.amount, 0);
+      grandTotal += amt; grandQty += qty;
+      doc.text(`${brand} - ${type}`, 14, y);
+      doc.text(String(qty), 110, y);
+      doc.text(amt.toFixed(2), 150, y);
+      y += 6;
+    });
+  });
+
+  y += 1;
+  doc.line(14, y, 196, y);
+  y += 7;
+  doc.setFontSize(11);
+  doc.text('TOTAL', 14, y);
+  doc.text(String(grandQty), 110, y);
+  doc.text(grandTotal.toFixed(2), 150, y);
+
+  y += 14;
+  doc.setFontSize(13);
+  doc.text('Daily Breakdown', 14, y);
+  y += 7;
+  doc.setFontSize(10);
+  doc.text('Date', 14, y);
+  doc.text('Can (RM)', 80, y);
+  doc.text('Bottle (RM)', 130, y);
+  doc.text('Total (RM)', 170, y);
+  y += 2;
+  doc.line(14, y, 196, y);
+  y += 6;
+
+  const dates = [...new Set(monthSales.map(s => s.date))].sort();
+  dates.forEach(date => {
+    if (y > 280){ doc.addPage(); y = 20; }
+    const dayItems = monthSales.filter(s => s.date === date);
+    const canAmt = dayItems.filter(s => s.type === 'Can').reduce((s,i) => s + i.amount, 0);
+    const bottleAmt = dayItems.filter(s => s.type === 'Bottle').reduce((s,i) => s + i.amount, 0);
+    doc.text(date, 14, y);
+    doc.text(canAmt.toFixed(2), 80, y);
+    doc.text(bottleAmt.toFixed(2), 130, y);
+    doc.text((canAmt + bottleAmt).toFixed(2), 170, y);
+    y += 6;
+  });
+
+  doc.save(`NK_ENT_Report_${monthStr}.pdf`);
+  showToast('PDF report generated');
+});
+
+// ---------- Settings: WhatsApp Share ----------
+document.getElementById('whatsappBtn').addEventListener('click', async () => {
+  const all = await getAllSales();
+  const now = new Date();
+  const monthStr = todayStr().slice(0,7);
+  const monthSales = all.filter(s => s.date.slice(0,7) === monthStr);
+
+  let text = `*NK ENT - Sales Summary*\n${now.toLocaleString('en-GB', { month:'long', year:'numeric' })}\n\n`;
+  let grandTotal = 0, grandQty = 0;
+
+  BRANDS.forEach(brand => {
+    TYPES.forEach(type => {
+      const items = monthSales.filter(s => s.brand === brand && s.type === type);
+      const qty = items.reduce((sum, s) => sum + s.quantity, 0);
+      const amt = items.reduce((sum, s) => sum + s.amount, 0);
+      grandTotal += amt; grandQty += qty;
+      text += `${brand} (${type}): ${qty} units - ${fmtRM(amt)}\n`;
+    });
+  });
+
+  text += `\nTotal Units: ${grandQty}\n*Total Sales: ${fmtRM(grandTotal)}*`;
+
+  const url = 'https://wa.me/?text=' + encodeURIComponent(text);
+  window.open(url, '_blank');
+});
+
+// ---------- Settings: Printable Summary ----------
+document.getElementById('printBtn').addEventListener('click', async () => {
+  await preparePrintView();
+  window.print();
+});
+
+async function preparePrintView(){
+  const all = await getAllSales();
+  const now = new Date();
+  const monthStr = todayStr().slice(0,7);
+  const monthSales = all.filter(s => s.date.slice(0,7) === monthStr);
+
+  let html = `<h1>NK ENT - Sales Summary</h1>`;
+  html += `<p>Period: ${now.toLocaleString('en-GB', { month:'long', year:'numeric' })} &nbsp;|&nbsp; Generated: ${now.toLocaleDateString('en-GB')}</p>`;
+
+  html += `<h2>Item Summary</h2><table><thead><tr><th>Item</th><th>Type</th><th>Units</th><th>Amount (RM)</th></tr></thead><tbody>`;
+  let grandTotal = 0, grandQty = 0;
+  BRANDS.forEach(brand => {
+    TYPES.forEach(type => {
+      const items = monthSales.filter(s => s.brand === brand && s.type === type);
+      const qty = items.reduce((sum, s) => sum + s.quantity, 0);
+      const amt = items.reduce((sum, s) => sum + s.amount, 0);
+      grandTotal += amt; grandQty += qty;
+      html += `<tr><td>${brand}</td><td>${type}</td><td>${qty}</td><td>${amt.toFixed(2)}</td></tr>`;
+    });
+  });
+  html += `</tbody><tfoot><tr><td colspan="2">TOTAL</td><td>${grandQty}</td><td>${grandTotal.toFixed(2)}</td></tr></tfoot></table>`;
+
+  html += `<h2>Daily Breakdown</h2><table><thead><tr><th>Date</th><th>Can (RM)</th><th>Bottle (RM)</th><th>Total (RM)</th></tr></thead><tbody>`;
+  const dates = [...new Set(monthSales.map(s => s.date))].sort();
+  let dailyGrand = 0;
+  dates.forEach(date => {
+    const dayItems = monthSales.filter(s => s.date === date);
+    const canAmt = dayItems.filter(s => s.type === 'Can').reduce((s,i) => s + i.amount, 0);
+    const bottleAmt = dayItems.filter(s => s.type === 'Bottle').reduce((s,i) => s + i.amount, 0);
+    dailyGrand += canAmt + bottleAmt;
+    html += `<tr><td>${date}</td><td>${canAmt.toFixed(2)}</td><td>${bottleAmt.toFixed(2)}</td><td>${(canAmt+bottleAmt).toFixed(2)}</td></tr>`;
+  });
+  if (dates.length === 0){
+    html += `<tr><td colspan="4">No sales recorded this month</td></tr>`;
+  }
+  html += `</tbody><tfoot><tr><td colspan="3">TOTAL</td><td>${dailyGrand.toFixed(2)}</td></tr></tfoot></table>`;
+
+  document.getElementById('printArea').innerHTML = html;
+}
+
+// ---------- Init ----------
+(async function init(){
+  await openDB();
+  document.getElementById('saleDate').value = currentDate;
+  renderDashboard();
+
+  if ('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
+})();
+</script>
+</body>
+</html>
